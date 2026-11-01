@@ -15,7 +15,10 @@ A mobile-first marketplace UI prototype using the Phoenix visual direction.
 - Demo listing and sign-in dialogs
 
 ## Important status
-This is a **front-end preview**, not a production marketplace yet. Authentication, database persistence, real seller listings, messaging, moderation, membership billing, ad billing, and order/fulfilment workflows are not connected. No payment is collected and no credentials are requested by this preview.
+This is a **front-end preview only**, not a production marketplace. Authentication, database persistence, real seller listings, messaging, moderation, membership billing, ad billing, and order/fulfilment workflows are not connected. No payment is collected and no credentials are requested by this preview.
+
+The connected V1 implementation is being maintained separately in the private repository:
+`eei852552-rgb/phoenix-marketplace-club`, branch `phoenix-v1-security-review`. That branch is a release candidate under verification, not yet deployed. Keep this V2 preview intact as a design/reference archive; do not copy it over V1 or delete it.
 
 ## Development
 Open `index.html` in a browser. The current implementation uses plain HTML, CSS, and JavaScript so it can be reviewed easily on Android.
