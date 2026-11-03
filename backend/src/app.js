@@ -96,7 +96,7 @@ app.get("/api/products", async (req,res) => {
   if (!parsed.success) return res.status(400).json({error:"Invalid search parameters"});
   try {
     const p=parsed.data, values=[], where=["p.status='published'"];
-    if(p.q){values.push("%"+p.q.replace(/[\\%_]/g,"\\$&")+"%");where.push("(p.title ILIKE $"+values.length+" ESCAPE '\\\\' OR p.description ILIKE $"+values.length+" ESCAPE '\\\\')");}
+    if(p.q){values.push("%"+p.q+"%");where.push("(p.title ILIKE $"+values.length+" OR p.description ILIKE $"+values.length+")");}
     if(p.category){values.push(p.category);where.push("p.category=$"+values.length);}
     const order=p.sort==="price_asc"?"p.price_minor ASC":p.sort==="price_desc"?"p.price_minor DESC":"p.created_at DESC";
     values.push(p.limit,p.offset);
