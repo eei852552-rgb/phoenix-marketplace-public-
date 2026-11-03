@@ -177,5 +177,40 @@ app.patch("/api/admin/products/:id/review",auth,async(req,res)=>{
   catch{res.status(503).json({error:"Could not review listing"});}
 });
 
+
+app.get("/api/admin/seller-applications",auth,async(req,res)=>{
+  if(req.user.role!=="admin")return res.status(403).json({error:"Administrator access required"});
+  try{const r=await db().query("SELECT a.id,a.user_id,a.display_name,a.phone,a.region,a.about,a.status,a.created_at,u.email FROM seller_applications a JOIN users u ON u.id=a.user_id WHERE a.status='pending' ORDER BY a.created_at ASC LIMIT 100");res.json({applications:r.rows});}
+  catch{res.status(503).json({error:"Could not load seller applications"});}
+});
+app.patch("/api/admin/seller-applications/:id/review",auth,async(req,res)=>{
+  if(req.user.role!=="admin")return res.status(403).json({error:"Administrator access required"});
+  const id=z.string().uuid().safeParse(req.params.id),body=z.object({decision:z.enum(["approve","reject"])}).safeParse(req.body);
+  if(!id.success||!body.success)return res.status(400).json({error:"Invalid review request"});
+  const client=await db().connect();
+  try{
+    await client.query("BEGIN");
+    const a=await client.query("SELECT user_id FROM seller_applications WHERE id=$1 AND status='pending' FOR UPDATE",[id.data]);
+    if(!a.rowCount){await client.query("ROLLBACK");return res.status(409).json({error:"Application is not pending"});}
+    const approved=body.data.decision==="approve";
+    await client.query("UPDATE seller_applications SET status=$1,reviewed_by=$2,reviewed_at=now() WHERE id=$3",[approved?"approved":"rejected",req.user.id,id.data]);
+    if(approved) await client.query("UPDATE users SET role='seller',updated_at=now() WHERE id=$1 AND status='active'",[a.rows[0].user_id]);
+    await client.query("COMMIT");
+    res.json({application:{id:id.data,status:approved?"approved":"rejected"}});
+  }catch{await client.query("ROLLBACK");res.status(503).json({error:"Could not review application"});}
+  finally{client.release();}
+});
+app.patch("/api/seller/orders/:id/status",auth,async(req,res)=>{
+  if(!["seller","admin"].includes(req.user.role))return res.status(403).json({error:"Seller account required"});
+  const id=z.string().uuid().safeParse(req.params.id),body=z.object({status:z.enum(["accepted","preparing","shipped","delivered"])}).safeParse(req.body);
+  if(!id.success||!body.success)return res.status(400).json({error:"Invalid order update"});
+  const transitions={accepted:["pending"],preparing:["accepted"],shipped:["preparing"],delivered:["shipped"]};
+  try{
+    const r=await db().query("UPDATE orders SET status=$1,updated_at=now() WHERE id=$2 AND seller_id=$3 AND status=ANY($4::text[]) RETURNING id,status",[body.data.status,id.data,req.user.id,transitions[body.data.status]]);
+    if(!r.rowCount)return res.status(409).json({error:"Order status transition is not allowed"});
+    res.json({order:r.rows[0]});
+  }catch{res.status(503).json({error:"Could not update order"});}
+});
+
 app.use((err,_req,res,_next)=>{ if(err.message==="Origin not allowed") return res.status(403).json({error:"Origin not allowed"}); res.status(500).json({error:"Unexpected server error"}); });
 export default app;
