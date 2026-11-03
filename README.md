@@ -31,3 +31,12 @@ A production launch needs an approved backend and database, secure authenticatio
 ## Project principle
 
 Keep the first release small, accessible, mobile-friendly, and honest about which features are demonstrations. Never commit API keys, bot tokens, passwords, or private customer information.
+
+## Project planning and policies
+
+- [Product roadmap](ROADMAP.md) — planned releases and future capabilities
+- [Privacy notice](PRIVACY.md) — demo-stage privacy information and future data obligations
+- [Terms draft](TERMS.md) — demo terms and planned marketplace rules
+- [Production launch checklist](LAUNCH_CHECKLIST.md) — security, legal, QA and operational release gates
+
+These documents describe plans and requirements; they do not mean future features are already implemented. The privacy notice and terms are drafts and need local legal review before collecting user data or launching transactions.
